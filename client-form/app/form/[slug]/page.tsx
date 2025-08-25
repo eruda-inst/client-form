@@ -1,191 +1,520 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { FormDefinition, Question, OptionsQuestion, NPSQuestion, TextInputQuestion, SliderQuestion, SwitchQuestion, DatePickerQuestion } from "@/lib/types"
-import { useParams } from "next/navigation"
-import { mapApiFormToFormDefinition } from "@/lib/utils"
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  FormDefinition,
+  Question,
+  OptionsQuestion,
+  NPSQuestion,
+  TextInputQuestion,
+  SliderQuestion,
+  SwitchQuestion,
+  DatePickerQuestion,
+} from "@/lib/types";
+import { mapApiFormToFormDefinition } from "@/lib/utils";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
-export default function FormPage() {
-  const params = useParams()
-  const slug = params.slug as string
-  const [form, setForm] = useState<FormDefinition | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+// Helper to create the Zod schema from the form definition
+function createFormSchema(questions: Question[]) {
+  const schemaObject = questions.reduce((acc, q) => {
+    let fieldSchema: z.ZodTypeAny;
 
-  useEffect(() => {
-    const fetchForm = async () => {
-      try {
-        // Mock API call for now, replace with actual API endpoint
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/formularios/publico/${slug}`)
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-        const rawData: any = await response.json()
-        if (rawData) {
-          const mappedForm = mapApiFormToFormDefinition(rawData)
-          setForm(mappedForm)
+    switch (q.type) {
+      case "text_input":
+      case "textarea_input":
+      case "radio": {
+        let schema = z.string();
+        if (q.required) {
+          fieldSchema = schema.min(1, "Campo obrigatório");
         } else {
-          setError("Formulário não encontrado.")
+          fieldSchema = schema.optional();
         }
-      } catch (e: any) {
-        setError(e.message)
-      } finally {
-        setLoading(false)
+        break;
       }
+      case "number_input": {
+        let schema = z.coerce.number();
+        if (q.required) {
+          fieldSchema = schema.refine((val) => val != null, {
+            message: "Campo obrigatório",
+          });
+        } else {
+          fieldSchema = schema.optional();
+        }
+        break;
+      }
+      case "checkbox_group": {
+        let schema = z.array(z.string());
+        if (q.required) {
+          fieldSchema = schema.min(1, "Selecione ao menos uma opção");
+        } else {
+          fieldSchema = schema.default([]);
+        }
+        break;
+      }
+      case "nps":
+        fieldSchema = z.number().min(q.min).max(q.max);
+        break;
+      case "date_picker": {
+        let schema = z.date();
+        if (q.required) {
+          fieldSchema = schema.refine((date) => date != null, {
+            message: "Campo obrigatório",
+          });
+        } else {
+          fieldSchema = schema.optional().nullable();
+        }
+        break;
+      }
+      case "switch":
+        fieldSchema = z.boolean().default(false);
+        break;
+      case "slider":
+        fieldSchema = z.number().min(q.min).max(q.max);
+        break;
+      default:
+        fieldSchema = z.any();
     }
 
-    fetchForm()
-  }, [slug])
+    acc[q.id] = fieldSchema;
+    return acc;
+  }, {} as Record<string, z.ZodTypeAny>);
+
+  return z.object(schemaObject);
+}
+
+// A dedicated component to render each question
+const RenderQuestion = ({
+  question,
+  control,
+}: {
+  question: Question;
+  control: any;
+}) => {
+  return (
+    <FormField
+      control={control}
+      name={question.id}
+      render={({ field }) => {
+        switch (question.type) {
+          case "text_input":
+            return (
+              <FormItem>
+                <FormLabel>{question.label}</FormLabel>
+                <FormControl>
+                  <Input placeholder={question.placeholder} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+          case "textarea_input":
+            return (
+              <FormItem>
+                <FormLabel>{question.label}</FormLabel>
+                <FormControl>
+                  <Textarea placeholder={question.placeholder} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+          case "number_input":
+            return (
+              <FormItem>
+                <FormLabel>{question.label}</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder={question.placeholder}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+          case "radio":
+            return (
+              <FormItem>
+                <FormLabel>{question.label}</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    className="flex flex-col space-y-1"
+                  >
+                    {question.options.map((option) => (
+                      <FormItem
+                        key={option.value}
+                        className="flex items-center space-x-3 space-y-0"
+                      >
+                        <FormControl>
+                          <RadioGroupItem value={option.value} />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          {option.label}
+                        </FormLabel>
+                      </FormItem>
+                    ))}
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+          case "checkbox_group":
+            return (
+              <FormItem>
+                <FormLabel>{question.label}</FormLabel>
+                {question.options.map((option) => (
+                  <FormField
+                    key={option.value}
+                    control={control}
+                    name={question.id}
+                    render={({ field }) => {
+                      const fieldValue = field.value || [];
+                      return (
+                        <FormItem
+                          key={option.value}
+                          className="flex flex-row items-start space-x-3 space-y-0"
+                        >
+                          <FormControl>
+                            <Checkbox
+                              checked={fieldValue.includes(option.value)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  field.onChange([
+                                    ...fieldValue,
+                                    option.value,
+                                  ]);
+                                } else {
+                                  field.onChange(
+                                    fieldValue.filter(
+                                      (value: string) => value !== option.value
+                                    )
+                                  );
+                                }
+                              }}
+                            />
+                          </FormControl>
+                          <FormLabel className="font-normal">
+                            {option.label}
+                          </FormLabel>
+                        </FormItem>
+                      );
+                    }}
+                  />
+                ))}
+                <FormMessage />
+              </FormItem>
+            );
+          case "nps":
+            return (
+              <FormItem>
+                <FormLabel>{question.label}</FormLabel>
+                <FormControl>
+                  <Slider
+                    value={[field.value]}
+                    onValueChange={(value) => field.onChange(value[0])}
+                    min={question.min}
+                    max={question.max}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+          case "date_picker":
+            return (
+              <FormItem>
+                <FormLabel>{question.label}</FormLabel>
+                <FormControl>
+                  <Calendar
+                    mode="single"
+                    selected={field.value}
+                    onSelect={field.onChange}
+                    className="rounded-md border"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+          case "switch":
+            return (
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <FormLabel className="text-base">{question.label}</FormLabel>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            );
+          case "slider":
+            return (
+              <FormItem>
+                <FormLabel>{question.label}</FormLabel>
+                <FormControl>
+                  <Slider
+                    value={[field.value]}
+                    onValueChange={(value) => field.onChange(value[0])}
+                    min={question.min}
+                    max={question.max}
+                    step={question.step}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+          default:
+            return <></>;
+        }
+      }}
+    />
+  );
+};
+
+function DynamicForm({ formDef }: { formDef: FormDefinition }) {
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const formSchema = createFormSchema(formDef.questions);
+
+  const defaultValues = formDef.questions.reduce((acc, q) => {
+    if (q.type === "checkbox_group") {
+      acc[q.id] = [];
+    } else if ("defaultValue" in q) {
+      acc[q.id] = q.defaultValue;
+    }
+    return acc;
+  }, {} as Record<string, any>);
+
+  const formMethods = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues,
+  });
+
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    console.log("Form submitted:", values);
+
+    const itens = formDef.questions.map((question) => {
+      const item: any = {
+        pergunta_id: question.id,
+      };
+
+      // Determine the value based on question type
+      switch (question.type) {
+        case "text_input":
+        case "textarea_input":
+          item.valor_texto = values[question.id];
+          break;
+        case "number_input":
+          item.valor_numero = values[question.id];
+          break;
+        case "radio":
+          // Find the selected option to get its ID and text
+          const selectedRadioOption = (question as OptionsQuestion).options.find(
+            (option) => option.value === values[question.id]
+          );
+          if (selectedRadioOption) {
+            item.valor_opcao_id = selectedRadioOption.value;
+            item.valor_opcao_texto = selectedRadioOption.label;
+          }
+          break;
+        case "checkbox_group":
+          // For checkbox group, values[question.id] will be an array of selected option values
+          // We need to map these to an array of objects with valor_opcao_id and valor_opcao_texto
+          item.valor_multiplas_opcoes = (values[question.id] as string[]).map(
+            (selectedValue: string) => {
+              const selectedOption = (question as OptionsQuestion).options.find(
+                (option) => option.value === selectedValue
+              );
+              return {
+                valor_opcao_id: selectedOption?.value,
+                valor_opcao_texto: selectedOption?.label,
+              };
+            }
+          );
+          break;
+        case "nps":
+        case "slider":
+          item.valor_numero = values[question.id];
+          break;
+        case "date_picker":
+          item.valor_texto = values[question.id] ? new Date(values[question.id]).toISOString().split('T')[0] : null; // Format as YYYY-MM-DD
+          break;
+        case "switch":
+          item.valor_booleano = values[question.id];
+          break;
+        default:
+          // Handle other types or log a warning
+          console.warn(`Unhandled question type: ${question.type}`);
+          break;
+      }
+      return item;
+    });
+
+    const submissionPayload = {
+      formulario_id: formDef.id,
+      itens: itens,
+      origem_ip: "string", // Placeholder, ideally obtained from server or a client-side utility
+      user_agent: navigator.userAgent, // Get user agent from browser
+      meta: {}, // Can be extended if needed
+    };
+
+    try {
+      const response = await fetch("/respostas/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(submissionPayload),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("Form submission successful:", result);
+      // Optionally, show a success message or redirect
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      // Optionally, show an error message
+    }
+  };
+
+  const FormContent = () => (
+    <>
+      <CardHeader>
+        <CardTitle>{formDef.title}</CardTitle>
+        <CardDescription>{formDef.description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Form {...formMethods}>
+          <form
+            onSubmit={formMethods.handleSubmit(onSubmit)}
+            className="space-y-8"
+          >
+            {formDef.questions
+              .sort((a, b) => a.order - b.order)
+              .map((question) => (
+                <RenderQuestion
+                  key={question.id}
+                  question={question}
+                  control={formMethods.control}
+                />
+              ))}
+            <Button type="submit">Enviar</Button>
+          </form>
+        </Form>
+      </CardContent>
+    </>
+  );
+
+  return (
+    <div className="w-full max-w-2xl p-4 mx-auto">
+      {isDesktop ? (
+        <Card>
+          <FormContent />
+        </Card>
+      ) : (
+        <FormContent />
+      )}
+    </div>
+  );
+}
+
+export default function FormPage() {
+  const params = useParams();
+  const slug = params.slug as string;
+  const [formDef, setFormDef] = useState<FormDefinition | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!slug) return;
+
+    const fetchForm = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/formularios/publico/${slug}`
+        );
+        if (!response.ok) {
+          if (response.status === 404) {
+            setError("Formulário não encontrado.");
+          } else {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+        } else {
+          const rawData: any = await response.json(); // You might want to define a type for the raw API response
+          if (rawData) {
+            const mappedForm = mapApiFormToFormDefinition(rawData);
+            setFormDef(mappedForm);
+          } else {
+            setError("Formulário não encontrado.");
+          }
+        }
+      } catch (e: any) {
+        setError(e.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchForm();
+  }, [slug]);
 
   if (loading) {
-    return <div className="flex justify-center items-center min-h-screen">Carregando formulário...</div>
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        Carregando formulário...
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="flex justify-center items-center min-h-screen text-red-500">Erro: {error}</div>
-  }
-
-  if (!form) {
-    return <div className="flex justify-center items-center min-h-screen">Formulário não disponível.</div>
-  }
-
-  const renderQuestion = (question: Question) => {
-    switch (question.type) {
-      case "text_input":
-      case "textarea_input":
-      case "number_input":
-        const textInputQuestion = question as TextInputQuestion
-        return (
-          <div key={textInputQuestion.id} className="mb-4">
-            <label htmlFor={textInputQuestion.id} className="block text-sm font-medium text-gray-700">
-              {textInputQuestion.label} {textInputQuestion.required && <span className="text-red-500">*</span>}
-            </label>
-            <Input
-              id={textInputQuestion.id}
-              type={textInputQuestion.type === "number_input" ? "number" : "text"}
-              placeholder={textInputQuestion.placeholder}
-              required={textInputQuestion.required}
-              className="mt-1 block w-full"
-            />
-          </div>
-        )
-      case "radio":
-      case "select":
-      case "checkbox_group":
-        const optionsQuestion = question as OptionsQuestion
-        return (
-          <div key={optionsQuestion.id} className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">
-              {optionsQuestion.label} {optionsQuestion.required && <span className="text-red-500">*</span>}
-            </label>
-            <div className="mt-2 space-y-2">
-              {optionsQuestion.options.map((option, index) => (
-                <div key={index} className="flex items-center">
-                  <input
-                    id={`${optionsQuestion.id}-${index}`}
-                    name={optionsQuestion.id}
-                    type={optionsQuestion.type === "radio" ? "radio" : "checkbox"}
-                    required={optionsQuestion.required && optionsQuestion.type === "radio"}
-                    className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300"
-                  />
-                  <label htmlFor={`${optionsQuestion.id}-${index}`} className="ml-3 block text-sm text-gray-900">
-                    {option.label}
-                  </label>
-                </div>
-              ))}
-            </div>
-          </div>
-        )
-      case "nps":
-        const npsQuestion = question as NPSQuestion
-        return (
-          <div key={npsQuestion.id} className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">
-              {npsQuestion.label} {npsQuestion.required && <span className="text-red-500">*</span>}
-            </label>
-            <div className="mt-2 flex justify-between text-sm">
-              <span>{npsQuestion.minLabel || npsQuestion.min}</span>
-              <span>{npsQuestion.maxLabel || npsQuestion.max}</span>
-            </div>
-            <Input
-              id={npsQuestion.id}
-              type="range"
-              min={npsQuestion.min}
-              max={npsQuestion.max}
-              required={npsQuestion.required}
-              className="mt-1 block w-full"
-            />
-          </div>
-        )
-      case "date_picker":
-        const datePickerQuestion = question as DatePickerQuestion
-        return (
-          <div key={datePickerQuestion.id} className="mb-4">
-            <label htmlFor={datePickerQuestion.id} className="block text-sm font-medium text-gray-700">
-              {datePickerQuestion.label} {datePickerQuestion.required && <span className="text-red-500">*</span>}
-            </label>
-            <Input
-              id={datePickerQuestion.id}
-              type="date"
-              required={datePickerQuestion.required}
-              className="mt-1 block w-full"
-            />
-          </div>
-        )
-      case "switch":
-        const switchQuestion = question as SwitchQuestion
-        return (
-          <div key={switchQuestion.id} className="mb-4 flex items-center justify-between">
-            <label htmlFor={switchQuestion.id} className="block text-sm font-medium text-gray-700">
-              {switchQuestion.label} {switchQuestion.required && <span className="text-red-500">*</span>}
-            </label>
-            {/* You'll need to import and use the Shadcn UI Switch component here */}
-            <Input
-              id={switchQuestion.id}
-              type="checkbox"
-              required={switchQuestion.required}
-              className="h-4 w-4 text-indigo-600 border-gray-300"
-            />
-          </div>
-        )
-      case "slider":
-        const sliderQuestion = question as SliderQuestion
-        return (
-          <div key={sliderQuestion.id} className="mb-4">
-            <label htmlFor={sliderQuestion.id} className="block text-sm font-medium text-gray-700">
-              {sliderQuestion.label} {sliderQuestion.required && <span className="text-red-500">*</span>}
-            </label>
-            {/* You'll need to import and use the Shadcn UI Slider component here */}
-            <Input
-              id={sliderQuestion.id}
-              type="range"
-              min={sliderQuestion.min}
-              max={sliderQuestion.max}
-              step={sliderQuestion.step}
-              required={sliderQuestion.required}
-              className="mt-1 block w-full"
-            />
-          </div>
-        )
-      default:
-        return null
-    }
-  }
-
-  return (
-    <div className="w-full max-w-2xl p-4">
-      <div className="mb-4">
-        <h1 className="text-2xl font-bold">{form.title}</h1>
-        <p className="text-gray-500">{form.description}</p>
+    return (
+      <div className="flex justify-center items-center min-h-screen text-red-500">
+        Erro: {error}
       </div>
-      <form className="space-y-6">
-        {form.questions.map((question) => renderQuestion(question))}
-        <Button type="submit" className="w-full">
-          Enviar Respostas
-        </Button>
-      </form>
-    </div>
-  )
+    );
+  }
+
+  if (!formDef) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        Formulário não disponível.
+      </div>
+    );
+  }
+
+  return <DynamicForm formDef={formDef} />;
 }
