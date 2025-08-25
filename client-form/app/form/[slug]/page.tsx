@@ -9,7 +9,7 @@ import { mapApiFormToFormDefinition } from "@/lib/utils"
 
 export default function FormPage() {
   const params = useParams()
-  const form_id = params.form_id as string
+  const slug = params.slug as string
   const [form, setForm] = useState<FormDefinition | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -18,7 +18,7 @@ export default function FormPage() {
     const fetchForm = async () => {
       try {
         // Mock API call for now, replace with actual API endpoint
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/formularios/${form_id}`)
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/formularios/publico/${slug}`)
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)
         }
@@ -37,7 +37,7 @@ export default function FormPage() {
     }
 
     fetchForm()
-  }, [form_id])
+  }, [slug])
 
   if (loading) {
     return <div className="flex justify-center items-center min-h-screen">Carregando formulário...</div>
@@ -181,9 +181,7 @@ export default function FormPage() {
         <p className="text-gray-500">{form.description}</p>
       </div>
       <form className="space-y-6">
-        {form.questions
-          .sort((a, b) => a.order - b.order)
-          .map((question) => renderQuestion(question))}
+        {form.questions.map((question) => renderQuestion(question))}
         <Button type="submit" className="w-full">
           Enviar Respostas
         </Button>

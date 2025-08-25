@@ -32,7 +32,7 @@ export function mapApiFormToFormDefinition(apiForm: any): FormDefinition {
   console.log("API Form received:", apiForm); // Debugging line
   console.log("API Form perguntas:", apiForm.perguntas); // Debugging line
 
-  const questions: Question[] = apiForm.perguntas.map((apiQuestion: any) => {
+  const questions: Question[] = apiForm.perguntas.filter((apiQuestion: any) => apiQuestion.ativa).map((apiQuestion: any) => {
     const newType = mapOldQuestionTypeToNew(apiQuestion.tipo)
 
     const baseQuestion = {
