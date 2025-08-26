@@ -40,7 +40,7 @@ export const mockForm: FormDefinition = {
     {
       id: "q4",
       label: "Quais recursos você mais utiliza?",
-      type: "checkbox_group",
+      type: "caixa_selecao",
       required: false,
       order: 4,
       options: [

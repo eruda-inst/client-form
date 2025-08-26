@@ -5,7 +5,7 @@ export type QuestionType =
   | "textarea_input" // Para input de texto longo (anteriormente "texto_longo")
   | "radio" // Para múltipla escolha com radio buttons (anteriormente "multipla_escolha")
   | "select" // Para múltipla escolha com dropdown (alternativa para "multipla_escolha")
-  | "checkbox_group" // Para múltiplas seleções com checkboxes (anteriormente "caixa_selecao")
+  | "caixa_selecao" // Para múltiplas seleções com checkboxes
   | "date_picker" // Para seleção de data (anteriormente "data")
   | "number_input" // Para input de número (anteriormente "numero")
   | "switch" // Para toggles (novo)
@@ -32,7 +32,7 @@ export interface Option {
 }
 
 export interface OptionsQuestion extends QuestionBase {
-  type: "radio" | "select" | "checkbox_group";
+  type: "radio" | "select" | "caixa_selecao";
   options: Option[];
 }
 

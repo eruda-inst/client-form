@@ -23,6 +23,7 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import { createFormSchema } from "@/lib/schemas";
 import { RenderQuestion } from "./render-question";
 import { SubmissionSuccess } from "./submission-success";
+import { toast } from "sonner";
 
 export function DynamicForm({
   formDef,
@@ -36,7 +37,7 @@ export function DynamicForm({
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const defaultValues = formDef.questions.reduce((acc, q) => {
-    if (q.type === "checkbox_group") {
+    if (q.type === "caixa_selecao") {
       acc[q.id] = [];
     } else if ("defaultValue" in q) {
       acc[q.id] = q.defaultValue;
@@ -75,7 +76,7 @@ export function DynamicForm({
             item.valor_opcao_id = selectedRadioOption.value;
           }
           break;
-        case "checkbox_group":
+        case "caixa_selecao":
           // For checkbox group, values[question.id] will be an array of selected option values
           // We need to map these to an array of objects with valor_opcao_id and valor_opcao_texto
           item.valor_multiplas_opcoes = (values[question.id] as string[]).map(
@@ -140,7 +141,7 @@ export function DynamicForm({
       setIsSubmitted(true);
     } catch (error) {
       console.error("Error submitting form:", error);
-      // Optionally, show an error message
+      toast.error("Erro ao enviar o formulário. Por favor, tente novamente.");
     }
   };
 
@@ -165,7 +166,7 @@ export function DynamicForm({
                   control={formMethods.control}
                 />
               ))}
-            <Button type="submit">Enviar</Button>
+            <Button className="w-full" type="submit">Enviar</Button>
           </form>
         </Form>
       </CardContent>

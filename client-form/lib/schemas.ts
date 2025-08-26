@@ -32,7 +32,7 @@ export function createFormSchema(questions: Question[]) {
         }
         break;
       }
-      case "checkbox_group": {
+      case "caixa_selecao": {
         let schema = z.array(z.string());
         if (q.required) {
           fieldSchema = schema.min(1, "Selecione ao menos uma opção");

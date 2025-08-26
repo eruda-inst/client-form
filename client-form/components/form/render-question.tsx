@@ -5,7 +5,7 @@ import { TextInput } from "./fields/text-input";
 import { TextareaInput } from "./fields/textarea-input";
 import { NumberInput } from "./fields/number-input";
 import { RadioGroupInput } from "./fields/radio-group";
-import { CheckboxGroupInput } from "./fields/checkbox-group";
+import { CaixaSelecaoInput } from "./fields/caixa-selecao";
 import { NpsInput } from "./fields/nps";
 import { DatePickerInput } from "./fields/date-picker";
 import { SwitchInput } from "./fields/switch";
@@ -27,8 +27,8 @@ export const RenderQuestion = ({
       return <NumberInput question={question} control={control} />;
     case "radio":
       return <RadioGroupInput question={question as OptionsQuestion} control={control} />;
-    case "checkbox_group":
-      return <CheckboxGroupInput question={question as OptionsQuestion} control={control} />;
+    case "caixa_selecao":
+      return <CaixaSelecaoInput question={question as OptionsQuestion} control={control} />;
     case "nps":
       return <NpsInput question={question as NPSQuestion} control={control} />;
     case "date_picker":

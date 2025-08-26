@@ -16,7 +16,7 @@ function mapOldQuestionTypeToNew(oldType: string): QuestionType {
     case "multipla_escolha":
       return "radio" // Assuming radio for multiple choice, can be 'select' if needed
     case "caixa_selecao":
-      return "checkbox_group"
+      return "caixa_selecao"
     case "data":
       return "date_picker"
     case "numero":
@@ -54,7 +54,7 @@ export function mapApiFormToFormDefinition(apiForm: any): FormDefinition {
           placeholder: apiQuestion.texto, // Using texto as placeholder for now
         } as TextInputQuestion
       case "radio":
-      case "checkbox_group":
+      case "caixa_selecao":
         const options: Option[] = apiQuestion.opcoes.map((apiOption: any) => ({
           value: apiOption.id, // Using option id as value
           label: apiOption.texto,
