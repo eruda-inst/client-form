@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Card,
   CardContent,
@@ -295,11 +295,10 @@ const RenderQuestion = ({
               <FormItem>
                 <FormLabel>{question.label}</FormLabel>
                 <FormControl>
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
-                    className="rounded-md border"
+                  <DatePicker
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder={question.placeholder}
                   />
                 </FormControl>
                 <FormMessage />
@@ -343,7 +342,13 @@ const RenderQuestion = ({
   );
 };
 
-function DynamicForm({ formDef }: { formDef: FormDefinition }) {
+function DynamicForm({
+  formDef,
+  slug,
+}: {
+  formDef: FormDefinition;
+  slug: string;
+}) {
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const formSchema = createFormSchema(formDef.questions);
 
@@ -379,13 +384,12 @@ function DynamicForm({ formDef }: { formDef: FormDefinition }) {
           item.valor_numero = values[question.id];
           break;
         case "radio":
-          // Find the selected option to get its ID and text
+          // Find the selected option to get its ID
           const selectedRadioOption = (question as OptionsQuestion).options.find(
             (option) => option.value === values[question.id]
           );
           if (selectedRadioOption) {
             item.valor_opcao_id = selectedRadioOption.value;
-            item.valor_opcao_texto = selectedRadioOption.label;
           }
           break;
         case "checkbox_group":
@@ -408,7 +412,11 @@ function DynamicForm({ formDef }: { formDef: FormDefinition }) {
           item.valor_numero = values[question.id];
           break;
         case "date_picker":
-          item.valor_texto = values[question.id] ? new Date(values[question.id] as string | number | Date).toISOString().split('T')[0] : null; // Format as YYYY-MM-DD
+          item.valor_texto = values[question.id]
+            ? new Date(values[question.id] as string | number | Date)
+                .toISOString()
+                .split("T")[0]
+            : null; // Format as YYYY-MM-DD
           break;
         case "switch":
           item.valor_booleano = values[question.id];
@@ -422,7 +430,6 @@ function DynamicForm({ formDef }: { formDef: FormDefinition }) {
     });
 
     const submissionPayload = {
-      formulario_id: formDef.id,
       itens: itens,
       origem_ip: "string", // Placeholder, ideally obtained from server or a client-side utility
       user_agent: navigator.userAgent, // Get user agent from browser
@@ -430,13 +437,16 @@ function DynamicForm({ formDef }: { formDef: FormDefinition }) {
     };
 
     try {
-      const response = await fetch("/respostas/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(submissionPayload),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/respostas/${slug}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(submissionPayload),
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -557,5 +567,5 @@ export default function FormPage() {
     );
   }
 
-  return <DynamicForm formDef={formDef} />;
+  return <DynamicForm formDef={formDef} slug={slug} />;
 }

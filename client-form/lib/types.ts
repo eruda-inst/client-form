@@ -37,6 +37,7 @@ export interface OptionsQuestion extends QuestionBase {
 }
 
 export interface DatePickerQuestion extends QuestionBase {
+  placeholder: string | undefined;
   type: "date_picker";
   defaultValue?: Date;
 }
