@@ -44,6 +44,7 @@ import {
 import { mapApiFormToFormDefinition } from "@/lib/utils";
 import { useMediaQuery } from "@/hooks/use-media-query";
 
+
 // Helper to create the Zod schema from the form definition
 function createFormSchema(questions: Question[]) {
   const schemaObject = questions.reduce((acc, q) => {
@@ -168,20 +169,25 @@ const RenderQuestion = ({
                   <RadioGroup
                     onValueChange={field.onChange}
                     defaultValue={field.value}
-                    className="flex flex-col space-y-1"
+                    className="grid gap-3"
                   >
                     {question.options.map((option) => (
-                      <FormItem
+                      <Label
                         key={option.value}
-                        className="flex items-center space-x-3 space-y-0"
+                        className="hover:bg-accent/50  flex items-start gap-3 rounded-lg border p-3 has-[[data-state=checked]]:bg-blue-50 dark:has-[[data-state=checked]]:border-blue-900 dark:has-[[data-state=checked]]:bg-blue-950"
                       >
                         <FormControl>
-                          <RadioGroupItem value={option.value} />
+                          <RadioGroupItem
+                            value={option.value}
+                            id={option.value}
+                          />
                         </FormControl>
-                        <FormLabel className="font-normal">
-                          {option.label}
-                        </FormLabel>
-                      </FormItem>
+                        <div className="grid gap-1.5 font-normal">
+                          <p className="text-sm leading-none font-medium">
+                            {option.label}
+                          </p>
+                        </div>
+                      </Label>
                     ))}
                   </RadioGroup>
                 </FormControl>
@@ -234,21 +240,56 @@ const RenderQuestion = ({
                 <FormMessage />
               </FormItem>
             );
-          case "nps":
+          case "nps": {
+            const npsQuestion = question as NPSQuestion;
+            const npsOptions = Array.from(
+              { length: npsQuestion.max - npsQuestion.min + 1 },
+              (_, i) => npsQuestion.min + i
+            );
             return (
               <FormItem>
                 <FormLabel>{question.label}</FormLabel>
                 <FormControl>
-                  <Slider
-                    value={[field.value]}
-                    onValueChange={(value) => field.onChange(value[0])}
-                    min={question.min}
-                    max={question.max}
-                  />
+                  {npsOptions.length > 15 ? (
+                    <Input
+                      type="number"
+                      {...field}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value, 10))
+                      }
+                      min={npsQuestion.min}
+                      max={npsQuestion.max}
+                    />
+                  ) : (
+                    <RadioGroup
+                      onValueChange={(value) =>
+                        field.onChange(parseInt(value, 10))
+                      }
+                      value={field.value?.toString()}
+                      className="flex flex-wrap justify-center gap-1"
+                    >
+                      {npsOptions.map((value) => (
+                        <Label
+                          key={value}
+                          className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-lg border p-3 hover:bg-accent/50 has-[[data-state=checked]]:bg-blue-50 dark:has-[[data-state=checked]]:border-blue-900 dark:has-[[data-state=checked]]:bg-blue-950"
+                        >
+                          <FormControl>
+                            <RadioGroupItem
+                              value={value.toString()}
+                              id={value.toString()}
+                              className="sr-only"
+                            />
+                          </FormControl>
+                          <span className="text-base font-medium">{value}</span>
+                        </Label>
+                      ))}
+                    </RadioGroup>
+                  )}
                 </FormControl>
                 <FormMessage />
               </FormItem>
             );
+          }
           case "date_picker":
             return (
               <FormItem>
@@ -367,7 +408,7 @@ function DynamicForm({ formDef }: { formDef: FormDefinition }) {
           item.valor_numero = values[question.id];
           break;
         case "date_picker":
-          item.valor_texto = values[question.id] ? new Date(values[question.id]).toISOString().split('T')[0] : null; // Format as YYYY-MM-DD
+          item.valor_texto = values[question.id] ? new Date(values[question.id] as string | number | Date).toISOString().split('T')[0] : null; // Format as YYYY-MM-DD
           break;
         case "switch":
           item.valor_booleano = values[question.id];
@@ -439,7 +480,7 @@ function DynamicForm({ formDef }: { formDef: FormDefinition }) {
   );
 
   return (
-    <div className="w-full max-w-2xl p-4 mx-auto">
+    <div className="w-full transition-all duration-300 max-w-2xl p-4 mx-auto">
       {isDesktop ? (
         <Card>
           <FormContent />
