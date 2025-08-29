@@ -28,17 +28,17 @@ export const CaixaSelecaoInput = ({ question, control }: { question: OptionsQues
             >
               <FormControl>
                 <Checkbox
-                  checked={fieldValue.includes(option.value)}
+                  checked={fieldValue.some((item: { pergunta_id: string, valor_opcao_id: string }) => item.valor_opcao_id === option.value)}
                   onCheckedChange={(checked) => {
                     if (checked) {
                       field.onChange([
                         ...fieldValue,
-                        option.value,
+                        { pergunta_id: question.id, valor_opcao_id: option.value },
                       ]);
                     } else {
                       field.onChange(
                         fieldValue.filter(
-                          (value: string) => value !== option.value
+                          (item: { pergunta_id: string, valor_opcao_id: string }) => item.valor_opcao_id !== option.value
                         )
                       );
                     }

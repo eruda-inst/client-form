@@ -33,7 +33,11 @@ export function createFormSchema(questions: Question[]) {
         break;
       }
       case "caixa_selecao": {
-        let schema = z.array(z.string());
+        // Updated schema to expect an array of objects
+        let schema = z.array(z.object({
+          pergunta_id: z.string(),
+          valor_opcao_id: z.string(),
+        }));
         if (q.required) {
           fieldSchema = schema.min(1, "Selecione ao menos uma opção");
         } else {
