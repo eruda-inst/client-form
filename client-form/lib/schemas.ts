@@ -20,9 +20,7 @@ export function createFormSchema(questions: Question[]) {
         break;
       }
       case "number_input": {
-        let schema = z.coerce.number({
-          invalid_type_error: "Deve ser um número válido",
-        });
+        let schema = z.coerce.number("Deve ser um número válido");
         if (q.required) {
           fieldSchema = schema.refine((val) => val != null, {
             message: "Campo obrigatório",
@@ -49,9 +47,7 @@ export function createFormSchema(questions: Question[]) {
         fieldSchema = z.number().min(q.min).max(q.max);
         break;
       case "date_picker": {
-        let schema = z.date({
-          invalid_type_error: "Deve ser uma data válida",
-        });
+        let schema = z.date("Deve ser uma data válida");
         if (q.required) {
           fieldSchema = schema.refine((date) => date != null, {
             message: "Campo obrigatório",

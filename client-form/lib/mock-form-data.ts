@@ -55,6 +55,7 @@ export const mockForm: FormDefinition = {
       type: "date_picker",
       required: true,
       order: 5,
+      placeholder: "DD/MM/YYYY", // Added placeholder
     },
     {
       id: "q6",

@@ -8,9 +8,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Question } from "@/lib/types";
+import { Question, TextInputQuestion } from "@/lib/types";
 
-export const TextareaInput = ({ question, control }: { question: Question, control: any }) => (
+export const TextareaInput = ({ question, control }: { question: TextInputQuestion, control: any }) => (
   <FormField
     control={control}
     name={question.id}
