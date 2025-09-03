@@ -91,7 +91,7 @@ export function DynamicForm({
             item.valor_numero = values[question.id];
             break;
           case "date_picker":
-            item.valor_texto = values[question.id]
+            item.valor_data = values[question.id]
               ? new Date(values[question.id] as string | number | Date)
                   .toISOString()
                   .split("T")[0]
