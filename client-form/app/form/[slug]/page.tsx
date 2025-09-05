@@ -1,30 +1,52 @@
-"use client";
-
-import { useParams } from "next/navigation";
-import { useFormData } from "@/hooks/use-form-data";
+import { Metadata } from "next";
 import { DynamicForm } from "@/components/form/dynamic-form";
+import { mapApiFormToFormDefinition } from "@/lib/utils";
+import { FormDefinition } from "@/lib/types";
 
-export default function FormPage() {
-  const params = useParams();
-  const slug = params.slug as string;
+type Props = {
+  params: { slug: string };
+};
 
-  const { formDef, loading, error } = useFormData(slug);
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        Carregando formulário...
-      </div>
+// Function to fetch form data
+async function getForm(slug: string): Promise<FormDefinition | null> {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/formularios/publico/${slug}`
     );
+    if (!response.ok) {
+      return null;
+    }
+    const rawData: any = await response.json();
+    if (rawData) {
+      return mapApiFormToFormDefinition(rawData);
+    }
+    return null;
+  } catch (error) {
+    console.error("Failed to fetch form data:", error);
+    return null;
+  }
+}
+
+// Generate metadata for the page
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const form = await getForm(params.slug);
+
+  if (!form) {
+    return {
+      title: "Formulário não encontrado",
+      description: "O formulário que você está procurando não existe ou não está disponível.",
+    };
   }
 
-  if (error) {
-    return (
-      <div className="flex justify-center items-center min-h-screen text-red-500">
-        Erro: {error}
-      </div>
-    );
-  }
+  return {
+    title: form.title,
+    description: form.description,
+  };
+}
+
+// The page component
+export default async function FormPage({ params }: Props) {
+  const formDef = await getForm(params.slug);
 
   if (!formDef) {
     return (
@@ -34,5 +56,5 @@ export default function FormPage() {
     );
   }
 
-  return <DynamicForm formDef={formDef} slug={slug} />;
+  return <DynamicForm formDef={formDef} slug={params.slug} />;
 }
