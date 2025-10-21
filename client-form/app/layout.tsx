@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
+import Image from "next/image";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,11 +32,28 @@ export default function RootLayout({
         <body>
           <ThemeProvider
             attribute="class"
-            defaultTheme="system"
-            enableSystem
+            defaultTheme="light"
             disableTransitionOnChange
           >
+            <div className="flex justify-center py-8"> 
+              <Image
+                src="/logo-cdl.jpg"
+                width={150}
+                height={150}
+                alt="Logo CDL"
+              />
+            </div>
             {children}
+            <div className="flex justify-center py-8"> 
+              <Image
+                src="/Logo Candol.png"
+                width={400}
+                height={400}
+                alt="Logo Candol"
+              />
+            </div>
+            
+            
           </ThemeProvider>
           <Toaster />
         </body>
