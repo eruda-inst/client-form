@@ -15,11 +15,19 @@ export type QuestionType =
   | "email"
   | "cnpj";
 
-// ... (rest of the code)
+export interface QuestionBase {
+  id: string;
+  bloco_id: string;
+  label: string;
+  required: boolean;
+  ordem_exibicao: number;
+  description?: string;
+}
 
 export interface TextInputQuestion extends QuestionBase {
   type: "text_input" | "textarea_input" | "number_input" | "telefone" | "email" | "cnpj";
   placeholder?: string;
+  defaultValue?: string;
 }
 
 export interface Option {
@@ -28,12 +36,13 @@ export interface Option {
 }
 
 export interface OptionsQuestion extends QuestionBase {
-  type: "radio" | "select" | "caixa_selecao";
+  type: "radio" | "select" | "caixa_selecao"; // 'select' was missing
   options: Option[];
+  defaultValue?: string | string[];
 }
 
 export interface DatePickerQuestion extends QuestionBase {
-  placeholder: string | undefined;
+  placeholder?: string;
   type: "date_picker";
   defaultValue?: Date;
 }
@@ -67,10 +76,17 @@ export type Question =
   | SliderQuestion
   | NPSQuestion;
 
+export interface Block {
+  id: string;
+  title: string;
+  description?: string;
+}
+
 export interface FormDefinition {
   id: string;
   title: string;
   description: string;
+  blocks: Block[];
   questions: Question[];
   createdAt: string;
   updatedAt: string;

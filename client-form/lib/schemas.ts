@@ -28,24 +28,28 @@ export function createFormSchema(questions: Question[]) {
         }
         break;
       }
-      case "telefone": {
-        let schema = z.string().regex(/^\d{11}$/, "Telefone inválido");
-        if (q.required) {
-          fieldSchema = schema.min(1, "Campo obrigatório");
-        } else {
-          fieldSchema = schema.optional().or(z.literal(""));
+      case "telefone":
+        {
+          const telefoneSchema = z
+            .string()
+            .transform((val) => val.replace(/\D/g, "")) // Remove non-digit characters
+            .refine((val) => val.length === 11, {
+              message: "O telefone deve ter 11 dígitos.",
+            });
+          fieldSchema = q.required ? telefoneSchema : telefoneSchema.optional();
         }
         break;
-      }
-      case "cnpj": {
-        let schema = z.string().regex(/^\d{14}$/, "CNPJ inválido");
-        if (q.required) {
-          fieldSchema = schema.min(1, "Campo obrigatório");
-        } else {
-          fieldSchema = schema.optional().or(z.literal(""));
+      case "cnpj":
+        {
+          const cnpjSchema = z
+            .string()
+            .transform((val) => val.replace(/\D/g, "")) // Remove non-digit characters
+            .refine((val) => val.length === 14, {
+              message: "O CNPJ deve ter 14 dígitos.",
+            });
+          fieldSchema = q.required ? cnpjSchema : cnpjSchema.optional();
         }
         break;
-      }
       case "number_input": {
         let schema = z.coerce.number("Por favor, insira um número válido.");
         if (q.required) {

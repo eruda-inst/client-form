@@ -4,12 +4,22 @@ import { Controller } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TextInputQuestion } from "@/lib/types";
-import InputMask from "react-input-mask";
 
 interface Props {
   question: TextInputQuestion;
   control: any;
 }
+
+const cnpjMask = (value: string) => {
+  if (!value) return "";
+  const onlyNumbers = value.replace(/\D/g, "");
+  return onlyNumbers
+    .slice(0, 14)
+    .replace(/(\d{2})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1/$2")
+    .replace(/(\d{4})(\d)/, "$1-$2");
+};
 
 export function CnpjInput({ question, control }: Props) {
   return (
@@ -19,20 +29,12 @@ export function CnpjInput({ question, control }: Props) {
         name={question.id}
         control={control}
         render={({ field }) => (
-          <InputMask
-            mask="99.999.999/9999-99"
-            value={field.value}
-            onChange={field.onChange}
-          >
-            {(inputProps: any) => (
-              <Input
-                {...inputProps}
-                id={question.id}
-                placeholder={question.placeholder}
-                required={question.required}
-              />
-            )}
-          </InputMask>
+          <Input
+            {...field}
+            onChange={(e) => field.onChange(cnpjMask(e.target.value))}
+            placeholder={question.placeholder}
+            required={question.required}
+          />
         )}
       />
     </div>

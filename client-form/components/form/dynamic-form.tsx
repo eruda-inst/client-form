@@ -26,6 +26,7 @@ import { RenderQuestion } from "./render-question";
 import { SubmissionSuccess } from "./submission-success";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
+import { Progress } from "@/components/ui/progress";
 
 export function DynamicForm({
   formDef,
@@ -56,12 +57,11 @@ export function DynamicForm({
   const defaultValues = formDef.questions.reduce((acc, q) => {
     if (q.type === "caixa_selecao") {
       acc[q.id] = [];
-    } else if (q.type === "switch") {
-      acc[q.id] = false;
-    } else if (q.type === "text_input" || q.type === "textarea_input" || q.type === "email" || q.type === "telefone" || q.type === "cnpj") {
-      acc[q.id] = "defaultValue" in q ? q.defaultValue : "";
     } else if ("defaultValue" in q) {
       acc[q.id] = q.defaultValue;
+    } else {
+      // Provide a sensible default for other types to avoid uncontrolled component errors
+      acc[q.id] = "";
     }
     return acc;
   }, {} as Record<string, any>);
@@ -94,6 +94,9 @@ export function DynamicForm({
         switch (question.type) {
           case "text_input":
           case "textarea_input":
+          case "email":
+          case "telefone":
+          case "cnpj":
             item.valor_texto = values[question.id];
             break;
           case "number_input":
@@ -149,21 +152,44 @@ export function DynamicForm({
       );
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        // Try to parse the error response from the backend
+        const errorData = await response.json();
+        if (errorData && errorData.detail) {
+          // Example detail: "Pergunta d5f6843f-3d36-4301-a93d-7447de76cda6: CNPJ inválido"
+          const match = errorData.detail.match(/Pergunta (.*?): (.*)/);
+          if (match) {
+            const [, questionId, errorMessage] = match;
+            const question = formDef.questions.find(q => q.id === questionId);
+            const friendlyMessage = question
+              ? `Erro no campo "${question.label}": ${errorMessage}`
+              : errorMessage;
+            throw new Error(friendlyMessage);
+          }
+        }
+        throw new Error(`Erro na API: ${response.statusText}`);
       }
 
       const result = await response.json();
       console.log("Form submission successful:", result);
       setIsSubmitted(true);
     } catch (error) {
-      console.error("Error submitting form:", error);
-      toast.error("Erro ao enviar o formulário. Por favor, tente novamente.");
+      const errorMessage = error instanceof Error ? error.message : "Ocorreu um erro inesperado.";
+      console.error("Error submitting form:", errorMessage);
+      toast.error(errorMessage);
     }
   };
 
-  const handleNext = () => {
-    if (currentBlockIndex < blockIds.length - 1) {
-      setCurrentBlockIndex(currentBlockIndex + 1);
+  const handleNext = async () => {
+    const fieldsToValidate = currentQuestions.map((q) => q.id);
+    const isValid = await formMethods.trigger(fieldsToValidate);
+
+    if (isValid) {
+      if (currentBlockIndex < blockIds.length - 1) {
+        setCurrentBlockIndex(currentBlockIndex + 1);
+      }
+    } else {
+      toast.error("Por favor, preencha os campos corretamente antes de avançar.");
+      console.log("Validation errors:", formMethods.formState.errors);
     }
   };
 
@@ -176,7 +202,7 @@ export function DynamicForm({
   const FormContent = () => (
     <>
       <CardHeader>
-        <CardTitle>{formDef.title}</CardTitle>
+        <CardTitle className="text-3xl">{formDef.title}</CardTitle>
         <CardDescription>{formDef.description}</CardDescription>
       </CardHeader>
       <CardContent>
@@ -185,7 +211,19 @@ export function DynamicForm({
             onSubmit={formMethods.handleSubmit(onSubmit)}
             className="space-y-8"
           >
-            <CardTitle>Bloco {currentBlockIndex + 1}</CardTitle>
+            <div className="space-y-2">
+              <Progress
+                value={((currentBlockIndex + 1) / blockIds.length) * 100}
+              />
+              <p className="text-sm text-muted-foreground">
+                Etapa {currentBlockIndex + 1} de {blockIds.length}
+              </p>
+            </div>
+
+            <CardTitle>
+              {formDef.blocks.find(b => b.id === currentBlockId)?.title ||
+                `Bloco ${currentBlockIndex + 1}`}
+            </CardTitle>
             {currentQuestions
               .sort((a, b) => a.ordem_exibicao - b.ordem_exibicao)
               .map((question) => (
@@ -197,14 +235,14 @@ export function DynamicForm({
               ))}
             <div className="flex justify-between">
               {currentBlockIndex > 0 && (
-                <Button type="button" onClick={handlePrevious}>
+                <Button type="button" variant="outline" onClick={handlePrevious}>
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Anterior
                 </Button>
               )}
               <div />
               {currentBlockIndex < blockIds.length - 1 ? (
-                <Button type="button" onClick={handleNext}>
+                <Button type="button" onClick={handleNext} disabled={formMethods.formState.isSubmitting}>
                   Próximo
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>

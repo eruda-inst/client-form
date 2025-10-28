@@ -34,6 +34,12 @@ function mapOldQuestionTypeToNew(oldType: string): QuestionType {
 }
 
 export function mapApiFormToFormDefinition(apiForm: any): FormDefinition {
+  const blocks = (apiForm.blocos || []).map((apiBlock: any) => ({
+    id: apiBlock.id,
+    title: apiBlock.titulo,
+    description: apiBlock.descricao,
+  }));
+
   const questions: Question[] = apiForm.perguntas.filter((apiQuestion: any) => apiQuestion.ativa).map((apiQuestion: any) => {
     const newType = mapOldQuestionTypeToNew(apiQuestion.tipo)
 
@@ -43,7 +49,7 @@ export function mapApiFormToFormDefinition(apiForm: any): FormDefinition {
       label: apiQuestion.texto,
       type: newType,
       required: apiQuestion.obrigatoria,
-      order: apiQuestion.ordem_exibicao,
+      ordem_exibicao: apiQuestion.ordem_exibicao,
       description: apiQuestion.texto, // Using texto as description for now, adjust if needed
     }
 
@@ -94,6 +100,7 @@ export function mapApiFormToFormDefinition(apiForm: any): FormDefinition {
     id: apiForm.id,
     title: apiForm.titulo,
     description: apiForm.descricao,
+    blocks: blocks,
     questions: questions,
     createdAt: apiForm.criado_em,
     updatedAt: apiForm.atualizado_em,
