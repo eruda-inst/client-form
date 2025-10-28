@@ -166,7 +166,7 @@ export function DynamicForm({
             throw new Error(friendlyMessage);
           }
         }
-        throw new Error(`Erro na API: ${response.statusText}`);
+        throw new Error(`Erro na API: ${errorData.detail}`);
       }
 
       const result = await response.json();
