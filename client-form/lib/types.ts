@@ -10,19 +10,15 @@ export type QuestionType =
   | "number_input" // Para input de número (anteriormente "numero")
   | "switch" // Para toggles (novo)
   | "slider" // Para seleção de range (novo)
-  | "nps"; // Para perguntas NPS (mantido)
+  | "nps" // Para perguntas NPS (mantido)
+  | "telefone"
+  | "email"
+  | "cnpj";
 
-interface QuestionBase {
-  id: string;
-  label: string; // O texto da pergunta
-  type: QuestionType;
-  required: boolean;
-  order: number; // Ordem de exibição
-  description?: string; // Texto adicional/descrição da pergunta
-}
+// ... (rest of the code)
 
 export interface TextInputQuestion extends QuestionBase {
-  type: "text_input" | "textarea_input" | "number_input";
+  type: "text_input" | "textarea_input" | "number_input" | "telefone" | "email" | "cnpj";
   placeholder?: string;
 }
 

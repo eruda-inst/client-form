@@ -6,7 +6,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-// Helper function to map old question types to new QuestionType
 function mapOldQuestionTypeToNew(oldType: string): QuestionType {
   switch (oldType) {
     case "texto_simples":
@@ -23,20 +22,24 @@ function mapOldQuestionTypeToNew(oldType: string): QuestionType {
       return "number_input"
     case "nps":
       return "nps"
+    case "telefone":
+      return "telefone"
+    case "email":
+      return "email"
+    case "cnpj":
+      return "cnpj"
     default:
       return "text_input" // Default to text_input or throw an error for unknown types
   }
 }
 
 export function mapApiFormToFormDefinition(apiForm: any): FormDefinition {
-  console.log("API Form received:", apiForm); // Debugging line
-  console.log("API Form perguntas:", apiForm.perguntas); // Debugging line
-
   const questions: Question[] = apiForm.perguntas.filter((apiQuestion: any) => apiQuestion.ativa).map((apiQuestion: any) => {
     const newType = mapOldQuestionTypeToNew(apiQuestion.tipo)
 
     const baseQuestion = {
       id: apiQuestion.id,
+      bloco_id: apiQuestion.bloco_id,
       label: apiQuestion.texto,
       type: newType,
       required: apiQuestion.obrigatoria,
@@ -48,6 +51,9 @@ export function mapApiFormToFormDefinition(apiForm: any): FormDefinition {
       case "text_input":
       case "textarea_input":
       case "number_input":
+      case "telefone":
+      case "email":
+      case "cnpj":
         return {
           ...baseQuestion,
           type: newType,

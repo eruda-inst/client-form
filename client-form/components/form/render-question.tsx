@@ -1,6 +1,6 @@
 "use client";
 
-import { Question, NPSQuestion, OptionsQuestion, DatePickerQuestion, SliderQuestion, SwitchQuestion } from "@/lib/types";
+import { Question, NPSQuestion, OptionsQuestion, DatePickerQuestion, SliderQuestion, SwitchQuestion, TextInputQuestion } from "@/lib/types";
 import { TextInput } from "./fields/text-input";
 import { TextareaInput } from "./fields/textarea-input";
 import { NumberInput } from "./fields/number-input";
@@ -10,6 +10,8 @@ import { NpsInput } from "./fields/nps";
 import { DatePickerInput } from "./fields/date-picker";
 import { SwitchInput } from "./fields/switch";
 import { SliderInput } from "./fields/slider";
+import { TelefoneInput } from "./fields/telefone-input";
+import { CnpjInput } from "./fields/cnpj-input";
 
 export const RenderQuestion = ({
   question,
@@ -37,6 +39,12 @@ export const RenderQuestion = ({
       return <SwitchInput question={question as SwitchQuestion} control={control} />;
     case "slider":
       return <SliderInput question={question as SliderQuestion} control={control} />;
+    case "email":
+      return <TextInput question={question} control={control} />;
+    case "telefone":
+      return <TelefoneInput question={question as TextInputQuestion} control={control} />;
+    case "cnpj":
+      return <CnpjInput question={question as TextInputQuestion} control={control} />;
     default:
       return <></>;
   }

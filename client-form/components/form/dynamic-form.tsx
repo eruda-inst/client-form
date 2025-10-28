@@ -1,6 +1,6 @@
-"use client";
+"use client"
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -24,6 +24,7 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import { createFormSchema } from "@/lib/schemas";
 import { RenderQuestion } from "./render-question";
 import { SubmissionSuccess } from "./submission-success";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 
 export function DynamicForm({
@@ -36,10 +37,29 @@ export function DynamicForm({
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const formSchema = createFormSchema(formDef.questions);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [currentBlockIndex, setCurrentBlockIndex] = useState(0);
+
+  // Group questions by block
+  const questionsByBlock = formDef.questions.reduce((acc, question) => {
+    const blockId = question.bloco_id;
+    if (!acc[blockId]) {
+      acc[blockId] = [];
+    }
+    acc[blockId].push(question);
+    return acc;
+  }, {} as Record<string, typeof formDef.questions>);
+
+  const blockIds = Object.keys(questionsByBlock);
+  const currentBlockId = blockIds[currentBlockIndex];
+  const currentQuestions = questionsByBlock[currentBlockId];
 
   const defaultValues = formDef.questions.reduce((acc, q) => {
     if (q.type === "caixa_selecao") {
       acc[q.id] = [];
+    } else if (q.type === "switch") {
+      acc[q.id] = false;
+    } else if (q.type === "text_input" || q.type === "textarea_input" || q.type === "email" || q.type === "telefone" || q.type === "cnpj") {
+      acc[q.id] = "defaultValue" in q ? q.defaultValue : "";
     } else if ("defaultValue" in q) {
       acc[q.id] = q.defaultValue;
     }
@@ -141,6 +161,18 @@ export function DynamicForm({
     }
   };
 
+  const handleNext = () => {
+    if (currentBlockIndex < blockIds.length - 1) {
+      setCurrentBlockIndex(currentBlockIndex + 1);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentBlockIndex > 0) {
+      setCurrentBlockIndex(currentBlockIndex - 1);
+    }
+  };
+
   const FormContent = () => (
     <>
       <CardHeader>
@@ -153,8 +185,9 @@ export function DynamicForm({
             onSubmit={formMethods.handleSubmit(onSubmit)}
             className="space-y-8"
           >
-            {formDef.questions
-              .sort((a, b) => a.order - b.order)
+            <CardTitle>Bloco {currentBlockIndex + 1}</CardTitle>
+            {currentQuestions
+              .sort((a, b) => a.ordem_exibicao - b.ordem_exibicao)
               .map((question) => (
                 <RenderQuestion
                   key={question.id}
@@ -162,7 +195,23 @@ export function DynamicForm({
                   control={formMethods.control}
                 />
               ))}
-            <Button className="w-full" type="submit">Enviar</Button>
+            <div className="flex justify-between">
+              {currentBlockIndex > 0 && (
+                <Button type="button" onClick={handlePrevious}>
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Anterior
+                </Button>
+              )}
+              <div />
+              {currentBlockIndex < blockIds.length - 1 ? (
+                <Button type="button" onClick={handleNext}>
+                  Próximo
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              ) : (
+                <Button type="submit">Enviar</Button>
+              )}
+            </div>
           </form>
         </Form>
       </CardContent>
