@@ -38,6 +38,7 @@ export function mapApiFormToFormDefinition(apiForm: any): FormDefinition {
     id: apiBlock.id,
     title: apiBlock.titulo,
     description: apiBlock.descricao,
+    ordem: apiBlock.ordem_exibicao,
   }));
 
   const questions: Question[] = apiForm.perguntas.filter((apiQuestion: any) => apiQuestion.ativa).map((apiQuestion: any) => {

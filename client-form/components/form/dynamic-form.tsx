@@ -40,17 +40,23 @@ export function DynamicForm({
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [currentBlockIndex, setCurrentBlockIndex] = useState(0);
 
+  // Sort blocks by order
+  const sortedBlocks = [...formDef.blocks].sort((a, b) => a.ordem - b.ordem);
+
   // Group questions by block
   const questionsByBlock = formDef.questions.reduce((acc, question) => {
     const blockId = question.bloco_id;
     if (!acc[blockId]) {
       acc[blockId] = [];
     }
-    acc[blockId].push(question);
+    acc[blockId].push(question)
     return acc;
   }, {} as Record<string, typeof formDef.questions>);
 
-  const blockIds = Object.keys(questionsByBlock);
+
+  const blockIds = sortedBlocks
+    .map(b => b.id)
+    .filter(id => questionsByBlock[id] && questionsByBlock[id].length > 0);
   const currentBlockId = blockIds[currentBlockIndex];
   const currentQuestions = questionsByBlock[currentBlockId];
 
@@ -166,7 +172,7 @@ export function DynamicForm({
             throw new Error(friendlyMessage);
           }
         }
-        throw new Error(`Erro na API: ${errorData.detail}`);
+        throw new Error(errorData.detail);
       }
 
       const result = await response.json();

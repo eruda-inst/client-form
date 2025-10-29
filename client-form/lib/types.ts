@@ -80,6 +80,7 @@ export interface Block {
   id: string;
   title: string;
   description?: string;
+  ordem: number;
 }
 
 export interface FormDefinition {

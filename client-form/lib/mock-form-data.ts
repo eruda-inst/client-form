@@ -6,9 +6,9 @@ export const mockForm: FormDefinition = {
   title: "Pesquisa de Satisfação do Cliente",
   description: "Por favor, preencha esta pesquisa para nos ajudar a melhorar nossos serviços.",
   blocks: [
-    { id: "block1", title: "Informações Básicas", description: "Comece com seus dados." },
-    { id: "block2", title: "Detalhes do Serviço", description: "Conte-nos sobre sua experiência." },
-    { id: "block3", title: "Feedback Final", description: "Suas últimas considerações." },
+    { id: "block1", title: "Informações Básicas", description: "Comece com seus dados.", ordem: 1 },
+    { id: "block2", title: "Detalhes do Serviço", description: "Conte-nos sobre sua experiência.", ordem: 2 },
+    { id: "block3", title: "Feedback Final", description: "Suas últimas considerações.", ordem: 3 },
   ],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
