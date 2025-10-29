@@ -192,6 +192,7 @@ export function DynamicForm({
     if (isValid) {
       if (currentBlockIndex < blockIds.length - 1) {
         setCurrentBlockIndex(currentBlockIndex + 1);
+        window.scrollTo(0, 0);
       }
     } else {
       toast.error("Por favor, preencha os campos corretamente antes de avançar.");

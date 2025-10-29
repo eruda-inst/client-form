@@ -18,6 +18,7 @@ async function getForm(slug: string): Promise<FormDefinition | null> {
     }
     const rawData: any = await response.json();
     if (rawData) {
+      console.log(rawData);
       return mapApiFormToFormDefinition(rawData);
     }
     return null;
@@ -29,7 +30,8 @@ async function getForm(slug: string): Promise<FormDefinition | null> {
 
 // Generate metadata for the page
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const form = await getForm(params.slug);
+  const slug = params.slug;
+  const form = await getForm(slug);
 
   if (!form) {
     return {
@@ -46,7 +48,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 // The page component
 export default async function FormPage({ params }: Props) {
-  const formDef = await getForm(params.slug);
+  const slug = params.slug;
+  const formDef = await getForm(slug);
 
   if (!formDef) {
     return (
@@ -56,5 +59,5 @@ export default async function FormPage({ params }: Props) {
     );
   }
 
-  return <DynamicForm formDef={formDef} slug={params.slug} />;
+  return <DynamicForm formDef={formDef} slug={slug} />;
 }
