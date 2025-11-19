@@ -4,7 +4,10 @@ import { mapApiFormToFormDefinition } from "@/lib/utils";
 import { FormDefinition } from "@/lib/types";
 
 type Props = {
-  params: { slug: string };
+  params: { 
+    slug: string,
+    mode: string
+   };
 };
 
 // Function to fetch form data
@@ -30,7 +33,7 @@ async function getForm(slug: string): Promise<FormDefinition | null> {
 
 // Generate metadata for the page
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const slug = params.slug;
+  const {slug, mode} = params;
   const form = await getForm(slug);
 
   if (!form) {
@@ -49,6 +52,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 // The page component
 export default async function FormPage({ params }: Props) {
   const slug = params.slug;
+  const mode = params.mode;
   const formDef = await getForm(slug);
 
   if (!formDef) {
@@ -59,5 +63,5 @@ export default async function FormPage({ params }: Props) {
     );
   }
 
-  return <DynamicForm formDef={formDef} slug={slug} />;
+  return <DynamicForm formDef={formDef} slug={slug} mode={mode} />;
 }

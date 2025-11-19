@@ -31,14 +31,26 @@ import { Progress } from "@/components/ui/progress";
 export function DynamicForm({
   formDef,
   slug,
+  mode,
 }: {
   formDef: FormDefinition;
   slug: string;
+  mode?: string;
 }) {
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const formSchema = createFormSchema(formDef.questions);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [currentBlockIndex, setCurrentBlockIndex] = useState(0);
+
+  useEffect(() => {
+    if (isSubmitted && mode === "kiosk") {
+      const timer = setTimeout(() => {
+        window.location.reload();
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isSubmitted, mode]);
 
   // Sort blocks by order
   const sortedBlocks = [...formDef.blocks].sort((a, b) => a.ordem - b.ordem);
@@ -167,7 +179,7 @@ export function DynamicForm({
             const [, questionId, errorMessage] = match;
             const question = formDef.questions.find(q => q.id === questionId);
             const friendlyMessage = question
-              ? `Erro no campo "${question.label}": ${errorMessage}`
+              ? `Erro no campo "${question.texto}": ${errorMessage}`
               : errorMessage;
             throw new Error(friendlyMessage);
           }
@@ -209,8 +221,8 @@ export function DynamicForm({
   const FormContent = () => (
     <>
       <CardHeader>
-        <CardTitle className="text-3xl">{formDef.title}</CardTitle>
-        <CardDescription>{formDef.description}</CardDescription>
+        <CardTitle className="text-3xl">{formDef.titulo}</CardTitle>
+        <CardDescription>{formDef.descricao}</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...formMethods}>
@@ -228,7 +240,7 @@ export function DynamicForm({
             </div>
 
             <CardTitle>
-              {formDef.blocks.find(b => b.id === currentBlockId)?.title ||
+              {formDef.blocks.find(b => b.id === currentBlockId)?.titulo ||
                 `Bloco ${currentBlockIndex + 1}`}
             </CardTitle>
             {currentQuestions
@@ -254,7 +266,7 @@ export function DynamicForm({
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               ) : (
-                <Button type="submit">Enviar</Button>
+                <Button type="submit" className="w-full">Enviar</Button>
               )}
             </div>
           </form>

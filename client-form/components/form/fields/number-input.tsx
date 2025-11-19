@@ -16,7 +16,10 @@ export const NumberInput = ({ question, control }: { question: Question, control
     name={question.id}
     render={({ field }) => (
       <FormItem>
-        <FormLabel>{question.label}</FormLabel>
+        <div className="flex flex-col">
+          <FormLabel className="font-semibold">{question.texto}</FormLabel>
+          {question.descricao && <p className="font-light">{question.descricao}</p>}
+        </div>
         <FormControl>
           <Input
             type="text"

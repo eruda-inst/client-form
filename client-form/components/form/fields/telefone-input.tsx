@@ -22,7 +22,10 @@ const telefoneMask = (value: string) => {
 export function TelefoneInput({ question, control }: Props) {
   return (
     <div className="space-y-2">
-      <Label htmlFor={question.id}>{question.label}</Label>
+      <div className="flex flex-col">
+        <Label htmlFor={question.id} className="font-semibold">{question.texto}</Label>
+        {question.descricao && <p className="font-light">{question.descricao}</p>}
+      </div>
       <Controller
         name={question.id}
         control={control}
@@ -31,7 +34,7 @@ export function TelefoneInput({ question, control }: Props) {
             {...field}
             onChange={(e) => field.onChange(telefoneMask(e.target.value))}
             placeholder={question.placeholder}
-            required={question.required}
+            required={question.obrigatoria}
           />
         )}
       />

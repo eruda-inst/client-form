@@ -12,7 +12,7 @@ export function createFormSchema(questions: Question[]) {
       case "textarea_input":
       case "radio": {
         let schema = z.string();
-        if (q.required) {
+        if (q.obrigatoria) {
           fieldSchema = schema.min(1, "Campo obrigatório");
         } else {
           fieldSchema = schema.optional().or(z.literal("")); // Treat empty string as valid for optional
@@ -21,7 +21,7 @@ export function createFormSchema(questions: Question[]) {
       }
       case "email": {
         let schema = z.string().email("E-mail inválido");
-        if (q.required) {
+        if (q.obrigatoria) {
           fieldSchema = schema.min(1, "Campo obrigatório");
         } else {
           fieldSchema = schema.optional().or(z.literal(""));
@@ -36,7 +36,7 @@ export function createFormSchema(questions: Question[]) {
             .refine((val) => val.length === 11, {
               message: "O telefone deve ter 11 dígitos.",
             });
-          fieldSchema = q.required ? telefoneSchema : telefoneSchema.optional();
+          fieldSchema = q.obrigatoria ? telefoneSchema : telefoneSchema.optional();
         }
         break;
       case "cnpj":
@@ -47,12 +47,12 @@ export function createFormSchema(questions: Question[]) {
             .refine((val) => val.length === 14, {
               message: "O CNPJ deve ter 14 dígitos.",
             });
-          fieldSchema = q.required ? cnpjSchema : cnpjSchema.optional();
+          fieldSchema = q.obrigatoria ? cnpjSchema : cnpjSchema.optional();
         }
         break;
       case "number_input": {
         let schema = z.coerce.number("Por favor, insira um número válido.");
-        if (q.required) {
+        if (q.obrigatoria) {
           fieldSchema = schema.refine((val) => val != null, {
             message: "Campo obrigatório",
           });
@@ -64,7 +64,7 @@ export function createFormSchema(questions: Question[]) {
 //... (rest of the code)
       case "date_picker": {
         let schema = z.date("Por favor, insira uma data válida.");
-        if (q.required) {
+        if (q.obrigatoria) {
           fieldSchema = schema.refine((date) => date != null, {
             message: "Campo obrigatório",
           });

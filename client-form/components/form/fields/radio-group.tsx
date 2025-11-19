@@ -17,7 +17,10 @@ export const RadioGroupInput = ({ question, control }: { question: OptionsQuesti
     name={question.id}
     render={({ field }) => (
       <FormItem>
-        <FormLabel>{question.label}</FormLabel>
+        <div className="flex flex-col mb-2">
+          <FormLabel className="font-semibold">{question.texto}</FormLabel>
+          {question.descricao && <p className="font-light">{question.descricao}</p>}
+        </div>
         <FormControl>
           <RadioGroup
             onValueChange={field.onChange}
@@ -37,7 +40,7 @@ export const RadioGroupInput = ({ question, control }: { question: OptionsQuesti
                 </FormControl>
                 <div className="grid gap-1.5 font-normal">
                   <p className="text-sm leading-none font-medium">
-                    {option.label}
+                    {option.texto}
                   </p>
                 </div>
               </Label>

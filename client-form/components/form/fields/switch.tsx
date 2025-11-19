@@ -16,7 +16,8 @@ export const SwitchInput = ({ question, control }: { question: SwitchQuestion, c
     render={({ field }) => (
       <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
         <div className="space-y-0.5">
-          <FormLabel className="text-base">{question.label}</FormLabel>
+          <FormLabel className="text-base font-semibold">{question.texto}</FormLabel>
+          {question.descricao && <p className="font-light">{question.descricao}</p>}
         </div>
         <FormControl>
           <Switch

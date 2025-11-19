@@ -29,25 +29,25 @@ export default function RootLayout({
     <>
       <html lang="en" suppressHydrationWarning>
         <head />
-        <body>
+        <body className={`grid-cols-1 pt-20`}>
           <ThemeProvider
             attribute="class"
-            defaultTheme="light"
+            defaultTheme="dark"
             disableTransitionOnChange
           >
             <div className="flex justify-center py-8"> 
               <Image
-                src="/logo-cdl.jpg"
-                width={150}
+                src="/logo-newnet.png"
+                width={350}
                 height={150}
-                alt="Logo CDL"
+                alt="Logo Newnet"
               />
             </div>
             {children}
             <div className="flex justify-center py-8"> 
               <Image
-                src="/Logo Candol.png"
-                width={400}
+                src="/logo-candol.png"
+                width={200}
                 height={400}
                 alt="Logo Candol"
               />

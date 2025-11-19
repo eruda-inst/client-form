@@ -13,7 +13,10 @@ import { OptionsQuestion } from "@/lib/types";
 
 export const CaixaSelecaoInput = ({ question, control }: { question: OptionsQuestion, control: any }) => (
   <FormItem>
-    <FormLabel>{question.label}</FormLabel>
+    <div className="flex flex-col mb-2">
+      <FormLabel className="font-semibold">{question.texto}</FormLabel>
+      {question.descricao && <p className="font-light">{question.descricao}</p>}
+    </div>
     {question.options.map((option) => (
       <FormField
         key={option.value}
@@ -47,7 +50,7 @@ export const CaixaSelecaoInput = ({ question, control }: { question: OptionsQues
               </FormControl>
               <div className="grid gap-1.5 font-normal">
                 <p className="text-sm leading-none font-medium">
-                  {option.label}
+                  {option.texto}
                 </p>
               </div>
             </Label>

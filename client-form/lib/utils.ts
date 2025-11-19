@@ -36,8 +36,8 @@ function mapOldQuestionTypeToNew(oldType: string): QuestionType {
 export function mapApiFormToFormDefinition(apiForm: any): FormDefinition {
   const blocks = (apiForm.blocos || []).map((apiBlock: any) => ({
     id: apiBlock.id,
-    title: apiBlock.titulo,
-    description: apiBlock.descricao,
+    titulo: apiBlock.titulo,
+    descricao: apiBlock.descricao,
     ordem: apiBlock.ordem_exibicao,
   }));
 
@@ -47,11 +47,11 @@ export function mapApiFormToFormDefinition(apiForm: any): FormDefinition {
     const baseQuestion = {
       id: apiQuestion.id,
       bloco_id: apiQuestion.bloco_id,
-      label: apiQuestion.texto,
+      texto: apiQuestion.texto,
       type: newType,
-      required: apiQuestion.obrigatoria,
+      obrigatoria: apiQuestion.obrigatoria,
       ordem_exibicao: apiQuestion.ordem_exibicao,
-      description: apiQuestion.texto, // Using texto as description for now, adjust if needed
+      descricao: apiQuestion.descricao,
     }
 
     switch (newType) {
@@ -70,7 +70,7 @@ export function mapApiFormToFormDefinition(apiForm: any): FormDefinition {
       case "caixa_selecao":
         const options: Option[] = apiQuestion.opcoes.map((apiOption: any) => ({
           value: apiOption.id, // Using option id as value
-          label: apiOption.texto,
+          texto: apiOption.texto,
         }))
         return {
           ...baseQuestion,
@@ -99,8 +99,8 @@ export function mapApiFormToFormDefinition(apiForm: any): FormDefinition {
 
   return {
     id: apiForm.id,
-    title: apiForm.titulo,
-    description: apiForm.descricao,
+    titulo: apiForm.titulo,
+    descricao: apiForm.descricao,
     blocks: blocks,
     questions: questions,
     createdAt: apiForm.criado_em,

@@ -16,7 +16,10 @@ export const TextInput = ({ question, control }: { question: TextInputQuestion, 
     name={question.id}
     render={({ field }) => (
       <FormItem>
-        <FormLabel>{question.label}</FormLabel>
+        <div className="flex flex-col">
+          <FormLabel className="font-semibold">{question.texto}</FormLabel>
+          {question.descricao && <p className="font-light">{question.descricao}</p>}
+        </div>
         <FormControl>
           <Input placeholder={question.placeholder} {...field} />
         </FormControl>

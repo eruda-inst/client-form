@@ -18,10 +18,10 @@ export type QuestionType =
 export interface QuestionBase {
   id: string;
   bloco_id: string;
-  label: string;
-  required: boolean;
+  texto: string;
+  obrigatoria: boolean;
   ordem_exibicao: number;
-  description?: string;
+  descricao?: string;
 }
 
 export interface TextInputQuestion extends QuestionBase {
@@ -32,7 +32,7 @@ export interface TextInputQuestion extends QuestionBase {
 
 export interface Option {
   value: string;
-  label: string;
+  texto: string;
 }
 
 export interface OptionsQuestion extends QuestionBase {
@@ -78,15 +78,15 @@ export type Question =
 
 export interface Block {
   id: string;
-  title: string;
-  description?: string;
+  titulo: string;
+  descricao?: string;
   ordem: number;
 }
 
 export interface FormDefinition {
   id: string;
-  title: string;
-  description: string;
+  titulo: string;
+  descricao: string;
   blocks: Block[];
   questions: Question[];
   createdAt: string;
